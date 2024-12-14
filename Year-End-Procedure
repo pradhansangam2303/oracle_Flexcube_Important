@@ -1,0 +1,89 @@
+
+
+
+
+
+End Of Year Process
+
+
+FlexCube – Corporate
+
+
+
+
+
+
+
+For Reference Only
+
+
+
+
+
+20 October, 2001
+
+
+i-flex solutions limited
+
+Unit 10 – 12, SDF – I, SEEPZ, Andheri (E),
+
+
+End of Year (EOY)
+
+
+The EOY process refers to all the tasks to be performed before commencing the transactions for a new financial year. The flow of operations in the bank during Financial Year End is generally as follows:
+
+•	On the Financial Year End Date, say Jun 30, the Profit and Loss account balances are moved to the Retained Profit / Loss Account. The balance in Retained Profit / Loss Account would reflect the Profit / Loss for the Financial Year.
+•	There could a gap between the Financial Year End Date and the Audit signoff. In this interim period and during Audit, there might be a need to post backdated adjustment entries into the Financial Year whose Year End Date has passed.
+•	Once Audit approves the “adjusted” balances, the books could be closed for the Financial Year. This marks the “Actual” end of the Financial Year. No back dated entries into the previous Financial Year should be allowed after this point.
+
+The flow of operations during the Year End Book Closure in Flexcube is as under:
+
+1.	FIN Closure
+
+•	A Period called FIN is created in Flexcube for each Financial Year when the Financial Year is defined in the Accounting Periods maintenance. For example, if a Financial Year is defined as :
+Start Date	:	01-Jul-2000
+End Date	:	30-Jun-2001
+Periods :	Monthly (M01 to M12)
+There will be 13 Accounting Periods; M01 to M12, and an additional Period is created by the system – FIN.
+•	There is a Batch Program in Flexcube - FIN Closure - that moves the Income and Expense Balances to the Year End PnL Account maintained in the Bank Parameters.
+•	GL Balances for FIN accounting period would be updated during FIN Closure. The opening balances of the new Financial Year would be updated using the balances from the FIN accounting period.
+•	The Current Period of each branch would be moved back to the last period of the year, say M12, after FIN balance movement. The System would move to the next period, that is the first period of the new Financial Year, once the End Of Day is marked and the Date Change happens.
+
+2.	After FIN Closure
+
+•	After FIN Close and before Period Closure, Flexcube allows posting of GL entries into the previous Financial Year.
+•	 “Back-valued” entries into the previous Financial Year could update the PnL balances of the previous Financial Year. Back valued entries would normally be of the nature of Adjustments.
+•	These Back-valued entries would update the GL balances of the previous periods. That is, if a entry is posted on 31-Aug-2002 (Period M01 in Financial Year 2002/03) with a value date of 31-May-2001 (Period M11 in Financial Year 2001/02), then the GL balances for Period M11 in Financial Year 2001/0-2 would reflect this entry as well.
+•	Back valued entries into PnL Accounts posted after FIN Close would not be moved into the Year End PnL Account automatically. This has to be manually adjusted.
+•	Under normal circumstances, this could continue till Audit is complete. Once all adjustments are complete and books for the previous Financial Year need to be closed, Period Closure could be marked.
+
+3.	Period Closure
+
+•	Period Closure in Flexcube marks the end of the period. Back-dated entries will not affect the GL balances of “Closed Periods”.
+•	The Closed Periods would not appear on the pick-list whilst passing an entry through the Journal Entry screen. There could be a back-dated entry, however, which dates back into a closed period. But this would not affect the GL balance of the Closed Period. For example, if all periods including FIN in Financial Year 2001/02  (Year from 01-Jul-2001 to 30-Jun-2002), then an entry posted on 31-Aug-2001 with a value date of 31-May-2001 still could be saved. But the GL Balance of M11 in FY 2001/02 would not be affected. Only the GL balances of M01 in FY 2002/03 would be affected.
+
+
+
+
+
+
+
+
+
+FIN CLOSE
+
+Profit and Loss Movement
+
+To close the profit and loss accounts choose End of Cycle from the Application Browser and Financial Close under it. The following screen is displayed:
+
+
+
+
+
+PERIOD CLOSURE
+
+To close an Accounting Period choose General Ledger	 from the Application Browser and Period Closure under it.
+
+
+

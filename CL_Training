@@ -1,0 +1,151 @@
+PRODUCT DEFINITION: i) prod code: unique identifier, 
+		    ii)prod type: loan,commitment
+
+Product preferences:
+1)rollover allowed for product or not
+2)liquidation is auto or manual
+3)holiday preferences for the schedules
+4)As part of prod setup we define different types of component to be linked to the product:
+i)prinicipal
+ii)int:
+iii)penalty:
+For interest & penalty component we need to define 
+	a) the basis element:basis of computation,
+	b)accrual preferences:whether to accrue or not,accrual freq
+iv)charge or fees to be charged for any particular CL event
+v)verify funds as part of auto liq
+vi)schedule structure: define freq of schedule:M,Q
+
+-for amort loans define payment schedule only for main-int component,no payment schedule to be defined for principal 
+component as the schedule structure is same for AMORT loans.
+-for simple we need to define the schedule for both principal & maint_int component.
+-for main-int & penalty components we need to additionally define formula depending whether loan is simple or amort
+
+formulate setup
+---------------
+SDE:system data element whose value derived internally by system.For example: i) principal_expected which is what is used in interest calculation.
+It is defined internally based on the schedule structure.
+,ii)principal_schodue, iii)maint_int_schodue
+
+UDE:user data element.For ex: rate for int & penalty components.
+
+As part of your component definition. For example MAINT_INT: you need define whether it amortized or simple formula.
+There are factoryship formula available for simple & amortized loan.You will use the SDE & UDE as part of formula definition.
+As part of formula definition First you need to give the formula name.For maint interest it is possible u may require multiple formula.
+For instance u may had dual formula kit where you may define the simple formula for initial part of the loan followed by amortized formula.
+you will define 2 separate formula & in your schedule structure you will define not just the component name but also the formula and duration of the
+schedule. 
+Likewise you also need define formula for the penalty component. In this case SDE you will be using may be PRINCIPAL_SCHODUE OR MAIN_INT_SCHODUE
+depending on what basis you want to compute the penalty.
+
+As part of schedule definition you may also choose to capitalize your interest(check flag for capiltalization).
+For main interest you can also define a moratorium formula.During this duration customer does not have to pay any interest.
+So, this int accrued during moratorium  is collected later either as part of future non-moratorium interest schedule or it may be capitalized to principal.
+There is a separate button for desigining moratorium schedule & you can define both the default moratorium formula as well as moratorium liquidation formula.
+And, once this formula are in place, you may add this particular moratorium formula as part of schedule structure when you define the maint interest component.
+
+5) As part of product definition, you need to define the events for CL loan product.
+common events:book, init,mliq,aliq,status_change,rollover.you need define the necessary accounting entries for these events & role to head mapping(underline GL head)
+-also need to define status change in case prod requires status change setup. you have to define different statuses required for the product along with the adversity 
+leveland also the condition/rules under which the account will change the status.you will define accrual preferences for the status(where you may wish to stop accrual
+ or accrue in suspended state).For each status u also need to define the liq order.Also, you need to define the accounting entris for status change as well incase
+status change requires balance movement is required(balance movement from 1 GL to another).
+
+After product is saved & authorized it creates C3PK# dynamic package.
+********************************************************************************************************************************************************************
+
+FOR AMORT:
+FOR SIMPLE:
+--------------------------------------------
+LOAN BOOKING:
+prod,amt,value dt,maturity dt :attributes of loan
+int & penalty rates cud be either fixed(specify the rate value) or floating(link the rate_code to ude[usage can be periodic.in this case u need to define the 
+revision schedule][automatic:cftm_rate_maint])
+most preferences are defaulted from product.some preferences can be changed at account level.
+amort:payment schd structure only for main_int
+simple:payment schd structure for both maint_int & principal.
+
+for any loan bullet schedule is mandatory
+bullet schedule:01-jan-15 to 01-jan-16. (here 01-jan-15 to 01-dec-15:monthly schedule of account 11) (01-dec-15 to 01-jan-16 as bullet).
+if you hv chosen the rate_code as periodic then u need to also define the revision schedule.
+if the disbursement is auto then u need to define disbursement schedule ,structure is similiar to payment & disb will be done as part of batch.
+
+auto liq: check availibilty of funds
+manual liq: not done in batch
+
+
+PAYMENT: normal/advanced/pre
+i)normal : pay is made on or after the schedule due date.
+ii)pre: pay is made before sch is due.only principal can be pre paid. int can only be paid until accrued.this will internally trigger sch re-structure.
+pre payment threshold amount can be defined. it will not allow payments below this threshold & also not during moratorium period.
+iii)advanced:future schedules can be paid for both int & principal(installment flag is checked here).this will not trigger sch re-structure.
+partial advance pay cannot be made.
+
+CLDPMNT
+----------
+account_no,brn,value_dt,limit_date(is the date upto which u want to do the payment),settlement_account,
+capitalization can be done irrespective of the preference at the prod/contract level.
+
+reversal of payment to be done in reverse order(order of latest payment)
+RACR:reversal of accrual.mandatory maint at prod level needs to be done. For instance: incase of back dated payment or back dated prepayment.
+system internally re-computes accrual for main_int & penalty & need to trigger reversals of accrual already done.accounting entry setup mandatory to be done in this 
+case.
+
+VAMI:value dated amendment can be both financial or non-financial amendment.
+-----
+financial:principal increase,maturity dt change,rate code or rate change.when vami is booked it triggers a vami event on initiation date.
+vami can be booked back dated,current dated or future dated vami. in case future dated vami, eod batch will initiate the vami event on application.
+vami creates a version additionally along with the event. to undo the effect of vami, u need to trigger version reversal.u need to go to account screen
+& choose the verion to be reversed.to reverse the contract, select version 1 to reverse the loan contract.
+
+STATUS CHANGE:auto during eod. manually can be done from CLDSTCHG
+
+CL BATCH OPERATION(EOD/BOD): 
+----------------------------
+aliq(accounts configured for auto liq based on preference selected for verification of funds),penal function(to compute 
+penalty for over-due schedules),sub function for status change(trigger status chg based on rules defined at prod level),other processes(accrual for main int & penalty,
+revision -ARVN(auto revision),REVN(periodic revision),auto rollover,future dated vami processing.
+
+========================================================================================================================================================================
+COMMON TABLES:
+--------------
+cltb_account_apps_master:master table for loan account
+acc_no,brn(pk key),value_dt,amt_dt,mat dt,amt financed,amt disbursed,account status(L,A,V,Y),latest esn,version no
+
+cltb_account_ude_values:details of ude's
+acc no,brn,eff dt,ude id,ude value,resolved value,Code usage(A/P),maint resolve(M/R)
+
+cltb_account_comp_sch:created as per schedule structure
+acc,brn,comp name,formula name,sch type(P/R/D),sch flag(N/M),start dt,end dt,no of schedules,freq,unit,first_due_dt(imp as it links with cltb_account_schedules tables),
+capitalized flag,emi amount,waiver flag
+
+cltb_account_schedules:acc,brn,comp name,sch start dt,sch due dt,sch linkage,amt due,amt settled,accrued amt,emi amt(for amort loans),mora int(populated for 
+non-mora main int schedules)
+
+cltb_account_comp_balances:principal expected(this column is only used,used for int computation),system derives it value internally based on the sch structure defined.
+On prepayment it is restructured.
+
+cltb_account_events_diary:event log table,both processed & unprocessed.
+
+cltb_event_entries:cl equivalent of accounting entries
+
+cltb_event_entries_pending:entries yet to be posted to accounting
+
+cltb_account_vamd:where data is populated when vami operation is done
+
+cltb_liq: liq master table(auto,manual,reversal of payment details)
+cltb_liq_comp_settled
+cltb_liq_settlement
+cltb_liq_comp_summary:breakup of paid,due,over dues amount for a particular CL loan.
+cltb_amount_paid:details of the payment(N/P/A pay status)
+
+cltb_account_comp_bal_breakup:component-wise status & GL wise outstanding balances for all the components.typically used for liq & status change.
+update on this table depends on the prod event accounting entry definition,accrual,status change event which needs to paas accounting entries.
+when doing liq during EOD this table is checked for which GL the entry is supposed to be passed.
+
+cltp/_history tables:snap of the table before payment/vami event.
+==================================================================================================================
+
+
+
+

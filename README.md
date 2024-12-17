@@ -1,2 +1,2 @@
-# Flexcube_Imp
-imp files for flexcube 
+# Oracle flexcube  Flexcube_Imp
+imp files for Oracle flexcube 
